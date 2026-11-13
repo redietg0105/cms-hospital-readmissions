@@ -48,8 +48,27 @@ Each hospital's score is the average of its ratios across the six HRRP condition
 1. **Load:** imported raw CMS CSV files into BigQuery.
 2. **Clean (SQL views):** converted text fields to numbers and dates with `SAFE_CAST`, replaced CMS measure codes with readable condition names, and standardized hospital names.
 3. **Aggregate (SQL):** built hospital-level and state-level summaries using CTEs, window functions (`AVG() OVER (PARTITION BY state)`, `NTILE(4)`, `RANK()`), and `CASE` logic to group 10+ ownership categories into For-profit, Government and Non-profit.
-4. **Analyze (SQL):** one query per finding (see Step 3 in `sql/queries.sql`).
+4. **Analyze (SQL):** one query per question, numbered in the order the analysis was built (see the table below).
 5. **Visualize (Tableau):** state map, state ranking, ownership comparison and key findings on one dashboard.
+
+## SQL files
+
+| File | What it answers |
+|---|---|
+| `01_data_profile.sql` | How complete is the data for each condition? |
+| `02_cleaning_views.sql` | Cleaning views: text to numbers/dates, readable condition names |
+| `02b_check_views.sql` | Sanity check on the cleaned views |
+| `03_join_hospital_details.sql` | Worst heart-failure hospitals, and which hospitals are missing details |
+| `04_cte_multi_condition_hospitals.sql` | Hospitals worse than expected on 3+ conditions (the **41%** finding) |
+| `05_window_rank_states.sql` | Ranking states from best to worst |
+| `06_window_partition_worst3_per_state.sql` | The 3 worst hospitals in each state |
+| `07_ntile_quartiles.sql` | Performance quartiles and star ratings (the **3.8 → 2.5** finding) |
+| `08_ownership_comparison.sql` | For-profit vs non-profit vs government (the **ownership** finding) |
+| `09_hospital_vs_state_average.sql` | Each hospital compared with its own state's average |
+| `10_er_wait_vs_readmissions.sql` | ER wait times vs readmissions (the **correlation ≈ 0** finding) |
+| `exports/export_1_state_summary.sql` | Builds `state_summary.csv` for the map and state ranking |
+| `exports/export_2_hospital_summary.sql` | Builds `hospital_summary.csv` for the ownership chart and lookup |
+| `exports/export_3_hospital_condition.sql` | Builds `hospital_condition.csv` for condition-level detail |
 
 ## Limitations
 
@@ -64,7 +83,11 @@ Each hospital's score is the average of its ratios across the six HRRP condition
 cms-hospital-readmissions/
 ├── README.md
 ├── sql/
-│   └── queries.sql      cleaning views, Tableau exports, analysis queries
+│   ├── 01_data_profile.sql ... 10_er_wait_vs_readmissions.sql
+│   └── exports/
+│       ├── export_1_state_summary.sql
+│       ├── export_2_hospital_summary.sql
+│       └── export_3_hospital_condition.sql
 └── images/
     └── dashboard.png
 ```
